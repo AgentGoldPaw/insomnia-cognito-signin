@@ -1,0 +1,22 @@
+{
+  "name": "insomnia-plugin-treasurefox-aws-cognito",
+  "version": "0.0.1",
+  "private": true,
+  "insomnia": {
+    "name": "aws-cognito-jwt",
+    "description": "This plugin is so you can login with different users and generate a JWT from cognito that is then injected to the header"
+  },
+  "main": "main.js",
+  "keywords": [
+    "insomnia",
+    "plugin",
+    "AWS",
+    "Cognito",
+    "Auth",
+    "JWT",
+    "Api"
+  ],
+  "dependencies": {
+    "@aws-amplify/auth": "^3.4.29"
+  }
+}
