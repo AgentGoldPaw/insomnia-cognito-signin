@@ -5,6 +5,15 @@
 
 const { Amplify } = require("@aws-amplify/core");
 const { Auth } = require("@aws-amplify/auth");
+const isSignedIn =  async function () {
+  try {
+    await Auth.currentSession();
+    return true
+  } catch (error) {
+    return false
+  }
+}
+
 
 const run = async (
   context,
@@ -51,11 +60,27 @@ const run = async (
   }
 
   Amplify.configure(configObject);
-  
-  await Auth.signOut();
+
   try {
-    const response = await Auth.signIn(Username, Password);
-    console.log("signed-in")
+    if (!(await isSignedIn())) {
+      const response = await Auth.signIn(Username, Password);
+      console.log(response);
+      console.log("signed-in")
+    }
+    try {
+      const session = await Auth.currentSession();
+      console.log(session)
+      let jwt;
+      if (TokenType === "id") {
+        console.log("id")
+        jwt = session.getIdToken().getJwtToken();
+      } else {
+        jwt = session.accessIdToken().getJwtToken();
+      }
+      return `Bearer ${jwt}`;
+    } catch (error) {
+      throw new Error(error.code)
+    }
   } catch (error) {
     if (
       error.code === "NotAuthorizedException" ||
@@ -63,22 +88,7 @@ const run = async (
     ) {
       throw new Error("Invalud username or password");
     }
-    console.log(error)
     throw new Error(error)
-  }
-
-  try {
-    const session = await Auth.currentSession();
-    console.log(session)
-    let jwt;
-    if (TokenType === "id") {
-      jwt = session.getIdToken().getJwtToken();
-    } else {
-      jwt = session.accessIdToken().getJwtToken();
-    }
-    return `Bearer ${jwt}`;
-  } catch (error) {
-    throw new Error(error.code)
   }
 };
 
