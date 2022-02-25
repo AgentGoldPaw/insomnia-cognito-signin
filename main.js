@@ -39,7 +39,6 @@ const run = async (
 
   const configObject = {
     Auth: {
-      identityPoolId: IdentityId,
       region: Region,
       identityPoolRegion: Region,
       userPoolId: UserPoolId,
@@ -51,53 +50,36 @@ const run = async (
     configObject.Auth.identityPoolId = IdentityId;
   }
 
-  const isSignedIn = async () => {
-    try {
-      const user = await Auth.currentAuthenticatedUser();
-      if (user && user.attributes) {
-        return true;
-      }
-    } catch (error) {
-      console.log(error);
-      console.log(configObject);
-    }
-    return false;
-  };
-
-  const key = [
-    Username,
-    Password,
-    Region,
-    ClientId,
-    TokenType,
-    IdentityId,
-  ].join("::");
-  const token = await context.store.getItem(key);
   Amplify.configure(configObject);
+  
   await Auth.signOut();
-  if (!(await isSignedIn()) || !token) {
-    try {
-      const response = await Auth.signIn(Username, Password);
-      await context.store.setItem(key, "true");
-    } catch (error) {
-      if (
-        error.code === "NotAuthorizedException" ||
-        error.code === "UserNotFoundException"
-      ) {
-        throw new Error("Invalud username or password");
-      }
-      throw new Error(error.code);
+  try {
+    const response = await Auth.signIn(Username, Password);
+    console.log("signed-in")
+  } catch (error) {
+    if (
+      error.code === "NotAuthorizedException" ||
+      error.code === "UserNotFoundException"
+    ) {
+      throw new Error("Invalud username or password");
     }
+    console.log(error)
+    throw new Error(error)
   }
-  await Auth.currentAuthenticatedUser();
-  const session = await Auth.currentSession();
-  let jwt;
-  if (TokenType === "id") {
-    jwt = session.getIdToken().getJwtToken();
-  } else {
-    jwt = session.accessIdToken().getJwtToken();
+
+  try {
+    const session = await Auth.currentSession();
+    console.log(session)
+    let jwt;
+    if (TokenType === "id") {
+      jwt = session.getIdToken().getJwtToken();
+    } else {
+      jwt = session.accessIdToken().getJwtToken();
+    }
+    return `Bearer ${jwt}`;
+  } catch (error) {
+    throw new Error(error.code)
   }
-  return `Bearer ${jwt}`;
 };
 
 module.exports.templateTags = module.exports.templateTags = [
