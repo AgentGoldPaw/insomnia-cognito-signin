@@ -60,7 +60,7 @@ const run = async (
   }
 
   Amplify.configure(configObject);
-
+  await Auth.signOut()
   try {
     if (!(await isSignedIn())) {
       const response = await Auth.signIn(Username, Password);
